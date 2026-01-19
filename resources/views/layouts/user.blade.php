@@ -115,7 +115,7 @@
     </header>
 
     <main class="container py-2">
-        {{ $slot }}
+        @yield('content')
     </main>
 
     <nav class="user-nav">

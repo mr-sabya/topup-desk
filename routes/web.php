@@ -4,7 +4,9 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 // Public User Routes
-Route::livewire('/', 'user.home')->name('home');
+Route::get('/', function () {
+    return view('frontend.home.index');
+})->name('home');
 
 // Auth Routes (Guest Only)
 Route::middleware('guest')->group(function () {
