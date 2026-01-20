@@ -1,30 +1,53 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 
-// Public User Routes
 Route::get('/', function () {
     return view('frontend.home.index');
-})->name('home');
-
-// Auth Routes (Guest Only)
-Route::middleware('guest')->group(function () {
-    Route::livewire('/login', 'auth.login')->name('login');
 });
 
-// Admin Routes (Auth Protected)
-Route::middleware(['auth'])->prefix('admin')->group(function () {
+Route::prefix('admin')->group(function () {
+    Route::get('/login', function () {
+        return view('admin.auth.login');
+    })->name('login');
 
-    Route::livewire('/', 'admin.dashboard')->name('admin.dashboard');
-    Route::livewire('/categories', 'admin.category-manager')->name('admin.categories');
-    Route::livewire('/providers', 'admin.provider-manager')->name('admin.providers');
+    Route::middleware('auth')->group(function () {
+        Route::get('/', function () {
+            return view('admin.home.index');
+        })->name('admin.dashboard');
+    });
 
-    // Logout Route
+    // category routes
+    Route::middleware('auth')->group(function () {
+        Route::get('/categories', function () {
+            return view('admin.category.index');
+        })->name('admin.categories');
+    });
+
+    // prodiver routes
+    Route::middleware('auth')->group(function () {
+        Route::get('/providers', function () {
+            return view('admin.provider.index');
+        })->name('admin.providers');
+    });
+
+    // settings routes
+    Route::middleware('auth')->group(function () {
+        Route::get('/settings', function () {
+            return view('admin.setting.index');
+        })->name('admin.settings');
+    });
+
+    // profile routes
+    Route::middleware('auth')->group(function () {
+        Route::get('/profile', function () {
+            return view('admin.profile.index');
+        })->name('admin.profile');
+    });
+
+    // logout route
     Route::get('/logout', function () {
-        Auth::logout();
-        session()->invalidate();
-        session()->regenerateToken();
-        return redirect('/login');
+        auth()->logout();
+        return redirect()->route('login');
     })->name('logout');
 });

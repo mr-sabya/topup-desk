@@ -130,8 +130,7 @@
             margin-bottom: 10px;
             padding: 15px;
             border: none;
-            display: flex;
-            align-items: center;
+            
         }
 
         /* Pull-up Form (Bottom Sheet) */
@@ -164,13 +163,13 @@
                 </li>
 
                 <li>
-                    <a class="dropdown-item py-2 d-flex align-items-center" href="#">
+                    <a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('admin.profile') }}" wire:navigate>
                         <i class="bi bi-person-circle me-3 text-secondary"></i> My Profile
                     </a>
                 </li>
 
                 <li>
-                    <a class="dropdown-item py-2 d-flex align-items-center" href="#">
+                    <a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('admin.settings') }}" wire:navigate>
                         <i class="bi bi-shield-lock me-3 text-secondary"></i> Security
                     </a>
                 </li>
@@ -189,7 +188,7 @@
     </nav>
 
     <main class="container py-3">
-        {{ $slot }}
+        @yield('content')
     </main>
 
     <nav class="bottom-nav">
@@ -202,12 +201,12 @@
         <a href="/admin/providers" class="tab-item {{ request()->is('admin/providers*') ? 'active' : '' }}" wire:navigate>
             <i class="bi bi-person-badge"></i><span>Providers</span>
         </a>
-        <a href="#" class="tab-item">
+        <a href="/admin/settings" class="tab-item {{ request()->is('admin/settings*') ? 'active' : '' }}" wire:navigate>
             <i class="bi bi-gear"></i><span>Settings</span>
         </a>
     </nav>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script data-navigate-once src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

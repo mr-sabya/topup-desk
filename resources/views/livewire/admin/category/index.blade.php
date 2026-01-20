@@ -1,0 +1,162 @@
+<div>
+    <!-- Top Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold m-0">Categories</h4>
+    </div>
+
+    <!-- Alert Messages -->
+    @if (session()->has('success'))
+    <div class="alert alert-success border-0 shadow-sm rounded-4 small py-2 mb-3">
+        <i class="bi bi-check-circle me-1"></i> {{ session('success') }}
+    </div>
+    @endif
+
+    @if (session()->has('error'))
+    <div class="alert alert-danger border-0 shadow-sm rounded-4 small py-2 mb-3">
+        <i class="bi bi-exclamation-triangle me-1"></i> {{ session('error') }}
+    </div>
+    @endif
+
+    <!-- Search Bar -->
+    <div class="mb-3">
+        <div class="input-group bg-white rounded-3 shadow-sm border">
+            <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
+            <input type="text" wire:model.live="search" class="form-control border-0 ps-0" placeholder="Search categories...">
+        </div>
+    </div>
+
+    <!-- Mobile List View -->
+    <div class="row g-2">
+        @foreach($this->categories as $cat)
+        <div class="col-12" wire:key="{{ $cat->id }}">
+            <div class="app-card bg-white p-3 shadow-sm d-flex align-items-center rounded-4 border-0">
+                <img src="{{ asset('storage/'.$cat->icon) }}" class="rounded-3 me-3 border" width="50" height="50" style="object-fit: cover;">
+                <div class="flex-grow-1">
+                    <h6 class="mb-0 fw-bold text-dark">{{ $cat->name }}</h6>
+                    <small class="text-muted">{{ $cat->slug }}</small>
+                </div>
+                <div class="text-end d-flex gap-1">
+                    <button wire:click="edit({{ $cat->id }})" class="btn btn-light rounded-pill btn-sm px-3 border">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <!-- Delete Button with Confirmation -->
+                    <!-- Triggers confirmDelete -->
+                    <button wire:click="confirmDelete({{ $cat->id }})" class="btn btn-light rounded-pill btn-sm px-3 border text-danger"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+        </div>
+        @endforeach
+    </div>
+
+    <!-- FAB Button -->
+    <button class="fab btn btn-primary shadow-lg d-flex align-items-center justify-content-center"
+        style="position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; border-radius: 50%; z-index: 1000;"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#formDrawer"
+        wire:click="resetForm">
+        <i class="bi bi-plus-lg fs-4"></i>
+    </button>
+
+    <!-- Bottom Sheet Form -->
+    <div wire:ignore.self class="offcanvas offcanvas-bottom rounded-top-5" id="formDrawer" tabindex="-1" style="height: 80%;">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-bold">{{ $categoryId ? 'Edit' : 'New' }} Category</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form wire:submit.prevent="save">
+                <div class="mb-4 text-center">
+                    @if ($icon && !is_string($icon))
+                    <img src="{{ $icon->temporaryUrl() }}" class="rounded-circle border shadow-sm mb-2" width="100" height="100" style="object-fit: cover;">
+                    @elseif($categoryId && \App\Models\Category::find($categoryId)->icon)
+                    <img src="{{ asset('storage/'.\App\Models\Category::find($categoryId)->icon) }}" class="rounded-circle border shadow-sm mb-2" width="100" height="100" style="object-fit: cover;">
+                    @else
+                    <div class="mx-auto bg-light rounded-circle border d-flex align-items-center justify-content-center mb-2" style="width: 100px; height: 100px;">
+                        <i class="bi bi-image text-muted fs-1"></i>
+                    </div>
+                    @endif
+                    <input type="file" wire:model="icon" class="form-control mt-2">
+                    <div wire:loading wire:target="icon" class="text-primary small mt-1">Uploading...</div>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="text" wire:model.live="name" class="form-control rounded-3" id="n" placeholder="Name">
+                    <label for="n">Category Name</label>
+                    @error('name') <span class="text-danger small">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="text" wire:model="slug" class="form-control bg-light rounded-3" id="s" placeholder="Slug" readonly>
+                    <label for="s">URL Slug</label>
+                </div>
+
+                <div class="form-check form-switch mb-4 p-3 bg-light rounded-3 d-flex justify-content-between align-items-center">
+                    <label class="form-check-label fw-bold" for="active">Category Status (Active)</label>
+                    <input class="form-check-input ms-0" type="checkbox" wire:model="is_active" id="active" style="width: 45px; height: 24px;">
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow">
+                    <span wire:loading wire:target="save" class="spinner-border spinner-border-sm me-2"></span>
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div wire:ignore.self class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-body text-center p-4">
+                    <div class="text-danger mb-3">
+                        <i class="bi bi-exclamation-circle-fill" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="fw-bold">Are you sure?</h5>
+                    <p class="text-muted small">This will permanently delete this category. This action cannot be undone.</p>
+
+                    <div class="d-grid gap-2">
+                        <button type="button" wire:click="delete" class="btn btn-danger py-2 rounded-pill fw-bold">
+                            <span wire:loading wire:target="delete" class="spinner-border spinner-border-sm me-2"></span>
+                            Yes, Delete
+                        </button>
+                        <button type="button" class="btn btn-light py-2 rounded-pill fw-bold" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <style>
+        .rounded-top-5 {
+            border-top-left-radius: 2rem !important;
+            border-top-right-radius: 2rem !important;
+        }
+
+        .app-card {
+            transition: transform 0.1s;
+        }
+
+        .app-card:active {
+            transform: scale(0.98);
+        }
+    </style>
+
+    <script>
+        // Form Drawer Handlers
+        window.addEventListener('close-drawer', () => {
+            bootstrap.Offcanvas.getOrCreateInstance(document.querySelector('#formDrawer')).hide();
+        });
+        window.addEventListener('open-drawer', () => {
+            bootstrap.Offcanvas.getOrCreateInstance(document.querySelector('#formDrawer')).show();
+        });
+
+        // Delete Modal Handlers
+        window.addEventListener('open-delete-modal', () => {
+            bootstrap.Modal.getOrCreateInstance(document.querySelector('#deleteModal')).show();
+        });
+        window.addEventListener('close-delete-modal', () => {
+            bootstrap.Modal.getOrCreateInstance(document.querySelector('#deleteModal')).hide();
+        });
+    </script>
+</div>
