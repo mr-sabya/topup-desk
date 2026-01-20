@@ -67,6 +67,16 @@
             </div>
         </div>
 
+        <div class="app-card bg-white p-4 shadow-sm rounded-4 border-0 mb-3 d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="fw-bold mb-0">Pause Application</h6>
+                <small class="text-muted">Instantly stop all outlet transactions</small>
+            </div>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" wire:model.live="is_paused" wire:click="toggleAppStatus" style="width: 50px; height: 25px;">
+            </div>
+        </div>
+
         <!-- Submit Button (Fixed at bottom for Mobile UX) -->
         <div class=" p-3 bg-white border-top shadow-lg d-md-none" style="z-index: 1040;">
             <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold">

@@ -14,6 +14,7 @@ class Index extends Component
     // Setting fields
     public $site_name, $site_email, $site_phone, $site_logo;
     public $new_logo; // Temporary holder for upload
+    public $is_paused;
 
     public function mount()
     {
@@ -24,6 +25,7 @@ class Index extends Component
         $this->site_email = $settings['site_email'] ?? 'admin@example.com';
         $this->site_phone = $settings['site_phone'] ?? '01XXXXXXXXX';
         $this->site_logo = $settings['site_logo'] ?? null;
+        $this->is_paused = ($settings['is_paused'] ?? '0') === '1';
     }
 
     public function save()
@@ -57,6 +59,12 @@ class Index extends Component
 
         session()->flash('success', 'Settings updated successfully.');
         $this->reset(['new_logo']);
+    }
+
+    public function toggleAppStatus()
+    {
+        Setting::updateOrCreate(['key' => 'is_paused'], ['value' => $this->is_paused ? '1' : '0']);
+        session()->flash('success', 'App ' . ($this->is_paused ? 'Paused' : 'Resumed') . ' successfully.');
     }
 
     public function render()

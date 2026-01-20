@@ -6,6 +6,12 @@ Route::get('/', function () {
     return view('frontend.home.index');
 });
 
+Route::get('/app-status-check', function () {
+    $isPaused = \App\Models\Setting::where('key', 'is_paused')->first()?->value === '1';
+    // Use (bool) to ensure it returns true/false, not "1"/"0"
+    return response()->json(['paused' => (bool)$isPaused]);
+});
+
 Route::prefix('admin')->group(function () {
     Route::get('/login', function () {
         return view('admin.auth.login');

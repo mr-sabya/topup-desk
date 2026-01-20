@@ -91,6 +91,7 @@ class Home extends Component
         session()->flash('success', 'Request sent! We are processing your payment.');
         $this->reset(['step', 'selectedCategoryId', 'selectedProviderId', 'phone_number', 'amount']);
     }
+    
 
     public function render()
     {
