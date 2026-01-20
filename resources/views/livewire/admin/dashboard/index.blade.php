@@ -52,7 +52,13 @@
 
             <div class="flex-grow-1">
                 <div class="d-flex justify-content-between">
-                    <h6 class="mb-0 fw-bold text-dark">{{ $trx->provider->name }}</h6>
+                    <h6 class="mb-0 fw-bold text-dark d-flex align-items-center">
+                        {{ $trx->provider->name }}
+                        <span class="badge ms-2 rounded-pill {{ $trx->status == 'success' ? 'bg-success' : ($trx->status == 'pending' ? 'bg-warning text-dark' : 'bg-danger') }}"
+                            style="font-size: 0.6rem; letter-spacing: 0.5px; padding: 4px 8px;">
+                            {{ strtoupper($trx->status) }}
+                        </span>
+                    </h6>
                     <span class="fw-bold text-dark">৳{{ number_format($trx->amount, 0) }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-1">
@@ -69,79 +75,80 @@
         @endforelse
     </div>
 
-    <!-- 5. Detail Bottom Sheet -->
-    <div wire:ignore.self class="offcanvas offcanvas-bottom rounded-top-5" id="detailsDrawer" tabindex="-1" style="height: 75%;">
-        <div class="offcanvas-header border-bottom">
-            <h5 class="offcanvas-title fw-bold">Transaction Details</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-        </div>
-        <div class="offcanvas-body bg-light">
-            @if($this->selectedTransaction)
-            <div class="app-card bg-white p-4 text-center rounded-4 mb-3 border shadow-sm">
-                <small class="text-muted d-block mb-1">Total Amount</small>
-                <h1 class="fw-bold mb-0 text-dark">৳{{ number_format($this->selectedTransaction->amount, 2) }}</h1>
-                <div class="mt-2">
-                    <span class="badge {{ $this->selectedTransaction->status == 'success' ? 'bg-success' : ($this->selectedTransaction->status == 'pending' ? 'bg-warning' : 'bg-danger') }} rounded-pill px-3">
-                        {{ strtoupper($this->selectedTransaction->status) }}
-                    </span>
-                </div>
+    <div>
+        <!-- 5. Detail Bottom Sheet -->
+        <div wire:ignore.self class="offcanvas offcanvas-bottom rounded-top-5" id="detailsDrawer" tabindex="-1" style="height: 75%;">
+            <div class="offcanvas-header border-bottom">
+                <h5 class="offcanvas-title fw-bold">Transaction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
             </div>
-
-            <div class="list-group rounded-4 shadow-sm border-0 mb-4">
-                @php $targetNumber = $this->selectedTransaction->phone_number ?? $this->selectedTransaction->account_number; @endphp
-                <div class="list-group-item d-flex justify-content-between align-items-center py-3 border-0">
-                    <div>
-                        <small class="text-muted d-block">Number to Recharge/Pay</small>
-                        <span class="fw-bold fs-5 text-primary">{{ $targetNumber }}</span>
+            <div class="offcanvas-body bg-light">
+                @if($this->selectedTransaction)
+                <div class="app-card bg-white p-4 text-center rounded-4 mb-3 border shadow-sm">
+                    <small class="text-muted d-block mb-1">Total Amount</small>
+                    <h1 class="fw-bold mb-0 text-dark">৳{{ number_format($this->selectedTransaction->amount, 2) }}</h1>
+                    <div class="mt-2">
+                        <span class="badge {{ $this->selectedTransaction->status == 'success' ? 'bg-success' : ($this->selectedTransaction->status == 'pending' ? 'bg-warning' : 'bg-danger') }} rounded-pill px-3">
+                            {{ strtoupper($this->selectedTransaction->status) }}
+                        </span>
                     </div>
-                    <div x-data="{ copied: false }">
-                        <button @click="navigator.clipboard.writeText('{{ $targetNumber }}'); 
+                </div>
+
+                <div class="list-group rounded-4 shadow-sm border-0 mb-4">
+                    @php $targetNumber = $this->selectedTransaction->phone_number ?? $this->selectedTransaction->account_number; @endphp
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3 border-0">
+                        <div>
+                            <small class="text-muted d-block">Number to Recharge/Pay</small>
+                            <span class="fw-bold fs-5 text-primary">{{ $targetNumber }}</span>
+                        </div>
+                        <div x-data="{ copied: false }">
+                            <button @click="navigator.clipboard.writeText('{{ $targetNumber }}'); 
                                             copied = true; 
                                             setTimeout(() => copied = false, 2000)"
-                            class="btn rounded-pill px-3 fw-bold"
-                            :class="copied ? 'btn-success' : 'btn-outline-primary'">
-                            <span x-show="!copied"><i class="bi bi-clipboard"></i> Copy</span>
-                            <span x-show="copied"><i class="bi bi-check-lg"></i> Copied</span>
-                        </button>
+                                class="btn rounded-pill px-3 fw-bold"
+                                :class="copied ? 'btn-success' : 'btn-outline-primary'">
+                                <span x-show="!copied"><i class="bi bi-clipboard"></i> Copy</span>
+                                <span x-show="copied"><i class="bi bi-check-lg"></i> Copied</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="list-group-item d-flex justify-content-between py-3 border-top">
+                        <span class="text-muted">Provider</span>
+                        <span class="fw-bold">{{ $this->selectedTransaction->provider->name }}</span>
+                    </div>
+
+                    <div class="list-group-item d-flex justify-content-between py-3 border-top">
+                        <span class="text-muted">Type</span>
+                        <span class="badge bg-secondary rounded-pill">{{ $this->selectedTransaction->connection_type ?? 'Prepaid' }}</span>
+                    </div>
+
+                    @if($this->selectedTransaction->trx_id)
+                    <div class="list-group-item d-flex justify-content-between py-3 border-top">
+                        <span class="text-muted">TRX ID</span>
+                        <span class="fw-bold text-uppercase small">{{ $this->selectedTransaction->trx_id }}</span>
+                    </div>
+                    @endif
+                </div>
+
+                @if($this->selectedTransaction->status === 'pending')
+                <div class="row g-2">
+                    <div class="col-6">
+                        <button wire:click="updateStatus({{ $this->selectedTransaction->id }}, 'failed')"
+                            wire:loading.attr="disabled"
+                            class="btn btn-light w-100 py-3 rounded-4 fw-bold text-danger border">Reject</button>
+                    </div>
+                    <div class="col-6">
+                        <button wire:click="updateStatus({{ $this->selectedTransaction->id }}, 'success')"
+                            wire:loading.attr="disabled"
+                            class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow">Complete</button>
                     </div>
                 </div>
-
-                <div class="list-group-item d-flex justify-content-between py-3 border-top">
-                    <span class="text-muted">Provider</span>
-                    <span class="fw-bold">{{ $this->selectedTransaction->provider->name }}</span>
-                </div>
-
-                <div class="list-group-item d-flex justify-content-between py-3 border-top">
-                    <span class="text-muted">Type</span>
-                    <span class="badge bg-secondary rounded-pill">{{ $this->selectedTransaction->connection_type ?? 'Prepaid' }}</span>
-                </div>
-
-                @if($this->selectedTransaction->trx_id)
-                <div class="list-group-item d-flex justify-content-between py-3 border-top">
-                    <span class="text-muted">TRX ID</span>
-                    <span class="fw-bold text-uppercase small">{{ $this->selectedTransaction->trx_id }}</span>
-                </div>
+                @endif
                 @endif
             </div>
-
-            @if($this->selectedTransaction->status === 'pending')
-            <div class="row g-2">
-                <div class="col-6">
-                    <button wire:click="updateStatus({{ $this->selectedTransaction->id }}, 'failed')"
-                        wire:loading.attr="disabled"
-                        class="btn btn-light w-100 py-3 rounded-4 fw-bold text-danger border">Reject</button>
-                </div>
-                <div class="col-6">
-                    <button wire:click="updateStatus({{ $this->selectedTransaction->id }}, 'success')"
-                        wire:loading.attr="disabled"
-                        class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow">Complete</button>
-                </div>
-            </div>
-            @endif
-            @endif
         </div>
     </div>
-
     <style>
         .rounded-top-5 {
             border-top-left-radius: 2.5rem !important;
